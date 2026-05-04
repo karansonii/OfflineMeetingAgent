@@ -29,3 +29,7 @@ pip install -r requirements.txt
 
 ##Run Project (FastAPI)
 pip install -r requirements.txt
+
+
+## Recommend Model for STT
+Faster-Whisper-Larger-V3
