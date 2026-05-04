@@ -1,0 +1,57 @@
+app/config.yaml
+
+server:
+  host: "0.0.0.0"
+  port: 8001
+
+# ─────────────────────────────────────────────────────────────
+# LLM Configuration
+# ─────────────────────────────────────────────────────────────
+llm:
+  base_url: "http://192.168.7.6:8001/v1"
+  model: "QuantTrio/Qwen3.5-27B-AWQ"
+  temperature: 0.3
+  max_tokens: 4000
+
+# ─────────────────────────────────────────────────────────────
+# Whisper / ASR
+# ─────────────────────────────────────────────────────────────
+whisper:
+  service_url: "http://192.168.7.6:8000"
+  language: "hi"
+
+# ─────────────────────────────────────────────────────────────
+# Speaker Diarization
+# ─────────────────────────────────────────────────────────────
+diarization:
+  service_url: "http://192.168.7.6:8006"
+  min_speakers: null
+  max_speakers: null
+  merge_threshold: 0.60
+
+# ─────────────────────────────────────────────────────────────
+# Voice Enrollment
+# match_threshold: raised from 0.55 → 0.65 to prevent false
+# matches where an unknown speaker's voice is close but not
+# actually the enrolled person.
+#
+# cross_label_threshold: if two diarization labels (SPEAKER_00,
+# SPEAKER_01) both belong to the same physical person, their
+# embeddings will be very similar. 0.75 catches same-person splits
+# without merging genuinely different speakers.
+# ─────────────────────────────────────────────────────────────
+enrollment:
+  min_duration: 40
+  match_threshold: 0.65     # raised from 0.55 — reduces false identity matches
+  service_url: "http://192.168.7.6:8007"
+
+# ─────────────────────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────────────────────
+paths:
+  speaker_embeddings: "/app-data/meeting-agent/speaker_embeddings"
+  enrollments:        "/app-data/meeting-agent/enrollments"
+
+logging:
+  log_dir: "/app-logs/ai-meeting-agent"
+  level: "INFO"

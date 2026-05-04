@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xomic Meetily — Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0f1117;
+      --surface:     #181c27;
+      --surface2:    #1e2235;
+      --border:      #252a38;
+      --border2:     #2e3548;
+      --accent:      #6c63ff;
+      --accent2:     #a78bfa;
+      --accent-dim:  rgba(108,99,255,0.15);
+      --green:       #22c55e;
+      --green-dim:   rgba(34,197,94,0.15);
+      --red:         #ef4444;
+      --red-dim:     rgba(239,68,68,0.15);
+      --orange:      #f97316;
+      --yellow:      #fbbf24;
+      --text:        #e8eaf0;
+      --text2:       #9ca3b8;
+      --muted:       #5a6080;
+      --sidebar-w:   260px;
+    }
+
+    html, body { height: 100%; font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+    .app { display: flex; height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w); min-width: var(--sidebar-w);
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 10;
+    }
+    .sidebar-header {
+      padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+    }
+    .sidebar-title {
+      font-size: 15px; font-weight: 700;
+      background: linear-gradient(135deg, #e8eaf0, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .sidebar-search {
+      margin: 14px 14px 6px; display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 12px; transition: border-color 0.2s;
+    }
+    .sidebar-search:focus-within { border-color: var(--accent); }
+    .sidebar-search svg { color: var(--muted); flex-shrink: 0; }
+    .sidebar-search input {
+      background: none; border: none; outline: none;
+      color: var(--text); font-family: 'Sora', sans-serif; font-size: 12.5px; width: 100%;
+    }
+    .sidebar-search input::placeholder { color: var(--muted); }
+    .sidebar-nav { flex: 1; padding: 8px 10px; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px; cursor: pointer;
+      transition: all 0.15s; color: var(--text2); font-size: 13.5px; font-weight: 500;
+      margin-bottom: 2px; user-select: none;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent2); }
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .sidebar-bottom {
+      padding: 12px; border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    .btn-secondary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 9px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer;
+      font-family: 'Sora', sans-serif; font-size: 12.5px; font-weight: 500;
+      background: var(--surface2); color: var(--text2); transition: all 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--border2); color: var(--text); background: var(--surface); }
+    .btn-secondary svg { width: 15px; height: 15px; }
+
+    /* ── Main ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    .view.active { display: flex; }
+
+    /* ── HOME view ── */
+    .home-content {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; position: relative; padding: 40px;
+    }
+    .home-content::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px; opacity: 0.3; pointer-events: none;
+    }
+    .home-empty { position: relative; z-index: 1; text-align: center; }
+    .home-empty-icon {
+      width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 30px;
+    }
+    .home-empty h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+    .home-empty p { font-size: 13.5px; color: var(--text2); max-width: 320px; line-height: 1.6; }
+    .home-actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
+    .action-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 13px 26px; border-radius: 12px; cursor: pointer;
+      font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+      transition: all 0.2s; border: none; min-width: 180px; justify-content: center;
+    }
+    .action-btn.offline {
+      background: linear-gradient(135deg, var(--accent), #818cf8); color: #fff;
+    }
+    .action-btn.offline:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(108,99,255,0.3); }
+    .action-btn.enroll { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .action-btn.enroll:hover { border-color: var(--green); color: var(--green); }
+
+    /* ── Meeting Notes view ── */
+    .notes-header { padding: 24px 28px 0; display: flex; align-items: center; justify-content: space-between; }
+    .notes-header h2 { font-size: 18px; font-weight: 600; }
+    .notes-header-actions { display: flex; gap: 8px; align-items: center; }
+    .notes-clear-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-family: 'Sora', sans-serif;
+      font-size: 12px; cursor: pointer; transition: all 0.15s;
+    }
+    .notes-clear-btn:hover { color: var(--red); border-color: var(--red-dim); background: var(--red-dim); }
+    .notes-list { flex: 1; overflow-y: auto; padding: 16px 20px; }
+    .notes-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2); text-align: center; }
+    .notes-empty span { font-size: 40px; margin-bottom: 12px; }
+    .notes-empty p { font-size: 13.5px; }
+
+    /* ── OFFLINE MODE view ── */
+    .offline-header {
+      padding: 24px 28px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .offline-header h2 { font-size: 18px; font-weight: 600; }
+    .offline-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px;
+      background: var(--green-dim); color: var(--green); letter-spacing: 0.04em;
+    }
+    .offline-body { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Input Mode Tabs ── */
+    .input-mode-tabs {
+      display: flex; gap: 4px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 12px; padding: 4px;
+    }
+    .input-mode-tab {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 9px 14px; border-radius: 9px; cursor: pointer;
+      font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--text2); border: none; background: none; transition: all 0.2s;
+    }
+    .input-mode-tab:hover { color: var(--text); }
+    .input-mode-tab.active {
+      background: var(--surface); color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+    }
+    .input-mode-tab span { font-size: 15px; }
+
+    /* ── Live Mic Recording Zone (Offline Mode) ── */
+    .mic-record-zone {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 40px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      text-align: center;
+    }
+    .mic-record-zone h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .mic-record-zone p { font-size: 13px; color: var(--text2); }
+
+    .mic-big-btn {
+      width: 88px; height: 88px; border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 34px; transition: all 0.2s; position: relative;
+    }
+    .mic-big-btn.idle {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 28px rgba(108,99,255,0.4);
+    }
+    .mic-big-btn.idle:hover { transform: scale(1.07); box-shadow: 0 0 40px rgba(108,99,255,0.55); }
+    .mic-big-btn.recording {
+      background: var(--red);
+      box-shadow: 0 0 0 0 rgba(239,68,68,0.4);
+      animation: pulse-red-mic 1.5s ease infinite;
+    }
+    @keyframes pulse-red-mic {
+      0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      70%  { box-shadow: 0 0 0 16px rgba(239,68,68,0); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    }
+
+    .mic-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px; font-weight: 500; color: var(--text);
+      letter-spacing: 0.08em;
+    }
+    .mic-status-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 500;
+    }
+    .mic-status-label.idle-label { color: var(--text2); }
+    .mic-status-label.rec-label  { color: var(--red); }
+    .rec-dot-small {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+      animation: blink 1s ease infinite;
+    }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+    .mic-waveform {
+      display: flex; align-items: center; gap: 3px; height: 36px;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .mic-waveform.active { opacity: 1; }
+    .mic-bar {
+      width: 4px; border-radius: 2px; background: var(--accent);
+      animation: wave 1.2s ease-in-out infinite; height: 6px;
+    }
+    .mic-bar:nth-child(2n) { animation-delay: 0.2s; background: var(--accent2); }
+    .mic-bar:nth-child(3n) { animation-delay: 0.4s; }
+    @keyframes wave { 0%,100% { height: 6px; } 50% { height: 32px; } }
+
+    .mic-hint { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── File Upload Zone ── */
+    .file-upload-zone {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      text-align: center;
+    }
+    .file-drop-area {
+      width: 100%; border: 2px dashed var(--border2); border-radius: 14px;
+      padding: 36px 24px; cursor: pointer; transition: all 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .file-drop-area:hover, .file-drop-area.dragover {
+      border-color: var(--accent); background: var(--accent-dim);
+    }
+    .file-drop-icon { font-size: 36px; }
+    .file-drop-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .file-drop-sub { font-size: 12px; color: var(--text2); }
+    .file-browse-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 20px; border-radius: 9px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--accent2);
+      font-family: 'Sora', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s; margin-top: 4px;
+    }
+    .file-browse-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+    .file-formats { font-size: 11.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    #fileInput { display: none; }
+
+    /* Shared: recorded/uploaded file ready row */
+    .offline-recorded-file {
+      display: none; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 18px; align-items: center; gap: 12px;
+    }
+    .offline-recorded-file.visible { display: flex; }
+    .offline-recorded-file-icon { font-size: 22px; }
+    .offline-recorded-file-name { font-size: 13px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .offline-recorded-file-dur  { font-size: 11.5px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+    .offline-clear-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 18px; line-height: 1; padding: 2px; transition: color 0.15s;
+    }
+    .offline-clear-btn:hover { color: var(--red); }
+
+    /* Converting spinner row */
+    .converting-row {
+      display: none; align-items: center; gap: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 18px;
+    }
+    .converting-row.visible { display: flex; }
+    .converting-spinner {
+      width: 20px; height: 20px; border: 2px solid var(--border2);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .converting-text { font-size: 13px; color: var(--text2); }
+
+    .offline-analyze-btn {
+      width: 100%; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+      font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
+      background: linear-gradient(135deg, var(--accent), #818cf8); color: #fff;
+      transition: all 0.2s;
+    }
+    .offline-analyze-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(108,99,255,0.4); }
+    .offline-analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* Progress panel */
+    .progress-panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px;
+      display: none; flex-direction: column; gap: 18px;
+    }
+    .progress-panel.visible { display: flex; }
+    .progress-panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .progress-panel-title { font-size: 14px; font-weight: 600; }
+    .progress-pct { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent2); }
+    .progress-bar-track { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 999px; width: 0%; transition: width 0.5s ease; }
+    .progress-steps { display: flex; flex-direction: column; gap: 10px; }
+    .progress-step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: 10px; background: var(--surface2);
+      font-size: 13px; transition: all 0.3s;
+    }
+    .progress-step.done { border-left: 3px solid var(--green); }
+    .progress-step.active { border-left: 3px solid var(--accent); background: var(--accent-dim); }
+    .progress-step.waiting { opacity: 0.45; border-left: 3px solid var(--border2); }
+    .step-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+    .step-info { flex: 1; }
+    .step-name { font-weight: 500; color: var(--text); }
+    .step-detail { font-size: 11.5px; color: var(--text2); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+    .step-time { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    .view-report-banner {
+      display: none; align-items: center; justify-content: space-between; gap: 14px;
+      background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); border-radius: 12px;
+      padding: 14px 18px;
+    }
+    .view-report-banner.visible { display: flex; }
+    .view-report-banner-text { font-size: 13px; font-weight: 600; color: var(--green); }
+    .view-report-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 20px; border-radius: 10px; border: none; cursor: pointer;
+      font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+      background: var(--green); color: #fff; transition: all 0.2s; white-space: nowrap;
+    }
+    .view-report-btn:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(34,197,94,0.35); }
+
+    .result-panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px;
+      display: none; flex-direction: column; gap: 16px;
+    }
+    .result-panel.visible { display: flex; }
+    .result-panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .result-panel-title { font-size: 14px; font-weight: 600; color: var(--green); display: flex; align-items: center; gap: 8px; }
+    .result-meta { font-size: 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+    .result-overview {
+      background: var(--surface2); border-radius: 10px; padding: 14px;
+      font-size: 13px; color: var(--text2); line-height: 1.6;
+    }
+    .result-section-title { font-size: 12px; font-weight: 600; color: var(--text); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .task-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .task-chip { background: var(--accent-dim); color: var(--accent2); padding: 4px 12px; border-radius: 6px; font-size: 12px; }
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .result-btn {
+      flex: 1; min-width: 120px; padding: 10px; border-radius: 10px;
+      font-family: 'Sora', sans-serif; font-size: 12.5px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; border: none;
+    }
+    .result-btn.view { background: linear-gradient(135deg, var(--accent), #818cf8); color: #fff; }
+    .result-btn.view:hover { transform: translateY(-1px); }
+    .result-btn.new { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .result-btn.new:hover { color: var(--text); border-color: var(--border2); }
+
+    /* ── VOICE ENROLLMENT view ── */
+    .enroll-header {
+      padding: 24px 28px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .enroll-header h2 { font-size: 18px; font-weight: 600; }
+    .enroll-body { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+    .enroll-form {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 22px; display: flex; flex-direction: column; gap: 16px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12.5px; font-weight: 600; color: var(--text); }
+    .form-input {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 14px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .form-input::placeholder { color: var(--muted); }
+
+    .enroll-recorder {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 28px 22px; text-align: center; display: flex; flex-direction: column;
+      align-items: center; gap: 14px;
+    }
+    .enroll-mic-btn {
+      width: 72px; height: 72px; border-radius: 50%; border: none; cursor: pointer;
+      font-size: 28px; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .enroll-mic-btn.idle {
+      background: var(--surface); border: 2px solid var(--border2);
+    }
+    .enroll-mic-btn.idle:hover { border-color: var(--accent); background: var(--accent-dim); }
+    .enroll-mic-btn.recording { background: var(--red); animation: pulse-red 1.5s ease infinite; }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50% { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+    }
+    .enroll-rec-timer { font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--text); }
+    .enroll-rec-hint { font-size: 12px; color: var(--text2); }
+    .enroll-waveform { display: flex; align-items: center; gap: 3px; height: 32px; }
+    .enroll-bar { width: 3px; border-radius: 2px; background: var(--accent); animation: wave 1.2s ease-in-out infinite; display: none; }
+    .enroll-bar.active { display: block; }
+    .enroll-bar:nth-child(2n) { animation-delay: 0.2s; background: var(--accent2); }
+    .enroll-bar:nth-child(3n) { animation-delay: 0.4s; }
+
+    .enroll-submit-btn {
+      width: 100%; padding: 13px; border-radius: 11px; border: none; cursor: pointer;
+      font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
+      background: linear-gradient(135deg, var(--accent), #818cf8); color: #fff;
+      transition: all 0.2s;
+    }
+    .enroll-submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(108,99,255,0.4); }
+    .enroll-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .speakers-section { display: flex; flex-direction: column; gap: 10px; }
+    .speakers-section-header { display: flex; align-items: center; justify-content: space-between; }
+    .speakers-section-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .speakers-count { font-size: 11.5px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+    .speaker-card {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 16px; transition: all 0.15s;
+    }
+    .speaker-card:hover { border-color: var(--border2); }
+    .speaker-avatar {
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+      background: var(--accent-dim); border: 1px solid rgba(108,99,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: var(--accent2);
+    }
+    .speaker-info { flex: 1; }
+    .speaker-name { font-size: 13.5px; font-weight: 600; }
+    .speaker-role { font-size: 11.5px; color: var(--text2); margin-top: 2px; }
+    .speaker-delete {
+      background: none; border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+      color: var(--muted); padding: 6px; font-size: 14px; transition: all 0.15s;
+    }
+    .speaker-delete:hover { color: var(--red); border-color: var(--red-dim); background: var(--red-dim); }
+    .no-speakers { text-align: center; padding: 28px; color: var(--text2); font-size: 13px; }
+    .no-speakers span { font-size: 32px; display: block; margin-bottom: 10px; }
+
+    /* ── Settings view ── */
+    .settings-header {
+      padding: 24px 28px 0; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-shrink: 0;
+    }
+    .settings-back {
+      width: 32px; height: 32px; border-radius: 8px; background: var(--surface2);
+      border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; color: var(--text2); transition: all 0.15s;
+    }
+    .settings-back:hover { color: var(--text); border-color: var(--border2); }
+    .settings-header h2 { font-size: 18px; font-weight: 600; }
+    .settings-body { flex: 1; overflow-y: auto; padding: 24px 28px; }
+    .settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+    .settings-section h3 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .settings-section .section-desc { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+    .path-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+    .path-item:last-child { margin-bottom: 0; }
+    .path-item-label { font-size: 12.5px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .path-item-value { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text2); word-break: break-all; margin-bottom: 10px; }
+    .path-open-btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border); font-family: 'Sora', sans-serif;
+      font-size: 12px; color: var(--text2); cursor: pointer; transition: all 0.15s;
+    }
+    .path-open-btn:hover { color: var(--text); border-color: var(--border2); }
+
+    /* ── Toast ── */
+    .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border2); border-radius: 12px;
+      padding: 12px 20px; font-size: 13px; display: flex; align-items: center; gap: 10px;
+      animation: toast-in 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4); min-width: 260px;
+    }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .toast.success { border-color: rgba(34,197,94,0.4); }
+    .toast.error { border-color: rgba(239,68,68,0.4); }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* ═══════════════════════════════════════════════
+       OFFLINE MODE — PRE-START CHOICE POPUP
+    ═══════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      animation: overlay-in 0.2s ease;
+    }
+    .modal-overlay.hidden { display: none; }
+    @keyframes overlay-in { from { opacity:0; } to { opacity:1; } }
+
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 24px; padding: 0; max-width: 460px; width: 100%;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+      animation: modal-in 0.28s cubic-bezier(0.34,1.56,0.64,1);
+      overflow: hidden;
+    }
+    @keyframes modal-in {
+      from { opacity:0; transform:translateY(24px) scale(0.95); }
+      to   { opacity:1; transform:none; }
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, rgba(108,99,255,0.18), rgba(167,139,250,0.1));
+      border-bottom: 1px solid var(--border);
+      padding: 28px 28px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+    }
+    .modal-icon-ring {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--accent-dim); border: 1px solid rgba(108,99,255,0.35);
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .modal-subtitle { font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 340px; }
+    .modal-subtitle strong { color: var(--text); }
+
+    .enrolled-pill {
+      display: none; align-items: center; gap: 8px;
+      background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 20px; padding: 5px 14px 5px 8px;
+    }
+    .enrolled-pill.visible { display: flex; }
+    .enrolled-pill-dot {
+      width: 20px; height: 20px; border-radius: 50%; background: var(--green);
+      display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0;
+    }
+    .enrolled-pill-text { font-size: 12px; font-weight: 600; color: var(--green); }
+
+    .modal-choices { padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+    .choice-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 18px; border-radius: 14px; cursor: pointer;
+      border: 1px solid var(--border); transition: all 0.2s;
+      text-align: left; background: var(--surface2); width: 100%;
+      font-family: 'Sora', sans-serif;
+    }
+    .choice-card:hover { transform: translateY(-1px); }
+    .choice-card.primary {
+      background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(129,140,248,0.12));
+      border-color: rgba(108,99,255,0.4);
+    }
+    .choice-card.primary:hover { border-color: var(--accent); box-shadow: 0 4px 20px rgba(108,99,255,0.25); }
+    .choice-card-icon {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .choice-card.primary .choice-card-icon { background: rgba(108,99,255,0.2); border: 1px solid rgba(108,99,255,0.3); }
+    .choice-card.secondary .choice-card-icon { background: var(--surface); border: 1px solid var(--border2); }
+    .choice-card-body { flex: 1; }
+    .choice-card-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .choice-card.primary  .choice-card-title { color: var(--accent2); }
+    .choice-card.secondary .choice-card-title { color: var(--text); }
+    .choice-card-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+    .choice-card-arrow { font-size: 16px; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
+    .choice-card:hover .choice-card-arrow { transform: translateX(3px); color: var(--text); }
+
+    .recommended-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+      background: var(--accent); color: #fff;
+      padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle;
+    }
+
+    .modal-footer-note {
+      text-align: center; font-size: 11.5px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace; padding: 0 20px 18px;
+    }
+
+    /* ── Voice Script Helper ── */
+    .script-helper-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25);
+      border-radius: 12px; padding: 12px 16px;
+    }
+    .script-helper-left  { display: flex; align-items: center; gap: 10px; }
+    .script-helper-icon  { font-size: 18px; }
+    .script-helper-text  { font-size: 13px; color: var(--text2); }
+    .script-helper-text strong { color: var(--text); }
+    .script-helper-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 8px; border: 1px solid rgba(251,191,36,0.35);
+      background: rgba(251,191,36,0.12); color: var(--yellow);
+      font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .script-helper-btn:hover { background: rgba(251,191,36,0.2); border-color: var(--yellow); }
+    .script-card {
+      display: none; background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .script-card.visible { display: block; }
+    .script-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .script-card-title  { font-size: 12.5px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.06em; }
+    .script-card-close  { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0; transition: color 0.15s; }
+    .script-card-close:hover { color: var(--text); }
+    .script-card-body   { font-size: 13.5px; color: var(--text); line-height: 1.75; }
+    .script-card-tip    { margin-top: 12px; font-size: 11.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    .enroll-progress-wrap { width: 100%; display: none; flex-direction: column; gap: 6px; }
+    .enroll-progress-wrap.visible { display: flex; }
+    .enroll-progress-label { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+    .enroll-progress-track { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .enroll-progress-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 999px; width: 0%; transition: width 1s linear; }
+  </style>
+   <script src="../config.js"></script>
+</head>
+<body>
+
+<div class="modal-overlay hidden" id="offlineChoiceModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-icon-ring">🎙️</div>
+      <div class="modal-title">Before You Start Recording</div>
+      <div class="modal-subtitle">
+        Voice enrollment lets the AI know <strong>who said what</strong> in your meeting.
+        Choose how you'd like to proceed.
+      </div>
+      <div class="enrolled-pill" id="enrolledPill">
+        <div class="enrolled-pill-dot">✓</div>
+        <span class="enrolled-pill-text" id="enrolledPillText">0 speakers enrolled</span>
+      </div>
+    </div>
+    <div class="modal-choices">
+      <button class="choice-card primary" onclick="goEnrollFromOfflineModal()">
+        <div class="choice-card-icon">👤</div>
+        <div class="choice-card-body">
+          <div class="choice-card-title">
+            Enroll Voice First
+            <span class="recommended-badge" id="recommendedBadge">RECOMMENDED</span>
+          </div>
+          <div class="choice-card-desc">Record a 40-second voice sample so the AI can identify each speaker by name.</div>
+        </div>
+        <span class="choice-card-arrow">›</span>
+      </button>
+      <button class="choice-card secondary" onclick="skipEnrollAndContinue()">
+        <div class="choice-card-icon">⚡</div>
+        <div class="choice-card-body">
+          <div class="choice-card-title">Jump Right In</div>
+          <div class="choice-card-desc">Skip enrollment. The AI will still transcribe but label speakers as <em>Speaker 1, Speaker 2…</em></div>
+        </div>
+        <span class="choice-card-arrow">›</span>
+      </button>
+    </div>
+    <div class="modal-footer-note" id="offlineModalFooterNote">
+      You can enroll voices anytime from the sidebar
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ══════════════════ SIDEBAR ══════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🎙️</div>
+      <span class="sidebar-title">Xomic Meetily</span>
+    </div>
+
+    <div class="sidebar-search">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Search meeting content..." />
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showView('home')" id="nav-home">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Home
+      </div>
+      <div class="nav-item" onclick="showView('notes')" id="nav-notes">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Meeting Notes
+      </div>
+      <div class="nav-item" onclick="showView('offline')" id="nav-offline">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M18.364 5.636a9 9 0 0 1 0 12.728M15.536 8.464a5 5 0 0 1 0 7.072M6.343 17.657a9 9 0 0 1 0-12.728M9.172 14.828a5 5 0 0 1 0-7.071"/>
+          <line x1="2" y1="2" x2="22" y2="22"/>
+        </svg>
+        Offline Mode
+      </div>
+      <div class="nav-item" onclick="showView('enrollment')" id="nav-enrollment">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Voice Enrollment
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="btn-secondary" onclick="showView('settings')" id="nav-settings">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══════════════════ MAIN ══════════════════ -->
+  <main class="main">
+
+    <!-- HOME VIEW -->
+    <div class="view active" id="view-home">
+      <div class="home-content">
+        <div class="home-empty" id="homeEmpty">
+          <div class="home-empty-icon">🎙️</div>
+          <h2>Welcome to Xomic Meetily!</h2>
+          <p>Record your meeting live or upload an existing recording for AI analysis.</p>
+          <div class="home-actions">
+            <button class="action-btn offline" onclick="showView('offline')">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M18.364 5.636a9 9 0 0 1 0 12.728M15.536 8.464a5 5 0 0 1 0 7.072M6.343 17.657a9 9 0 0 1 0-12.728M9.172 14.828a5 5 0 0 1 0-7.071"/>
+                <line x1="2" y1="2" x2="22" y2="22"/>
+              </svg>
+              Offline Mode
+            </button>
+            <button class="action-btn enroll" onclick="showView('enrollment')">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Voice Enrollment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEETING NOTES VIEW -->
+    <div class="view" id="view-notes">
+      <div class="notes-header">
+        <h2>Meeting Notes</h2>
+        <div class="notes-header-actions">
+          <button class="notes-clear-btn" onclick="clearAllNotes()" id="notesClearBtn" style="display:none;">
+            🗑️ Clear All
+          </button>
+        </div>
+      </div>
+      <div class="notes-list" id="notesList">
+        <div class="notes-empty" id="notesEmpty">
+          <span>📋</span>
+          <p>No meeting notes yet.<br/>Analyze a meeting to see results here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFLINE MODE VIEW -->
+    <div class="view" id="view-offline">
+      <div class="offline-header">
+        <h2>Offline Mode</h2>
+        <span class="offline-badge">LOCAL AI</span>
+      </div>
+      <div class="offline-body">
+
+        <div class="input-mode-tabs">
+          <button class="input-mode-tab active" id="modeTabMic" onclick="switchInputMode('mic')">
+            <span>🎙️</span> Record Live
+          </button>
+          <button class="input-mode-tab" id="modeTabFile" onclick="switchInputMode('file')">
+            <span>📁</span> Upload File
+          </button>
+        </div>
+
+        <!-- MIC PANEL -->
+        <div id="micPanel">
+          <div class="mic-record-zone" id="micRecordZone">
+            <h3>Record Meeting Audio</h3>
+            <p>Tap the mic to start recording your meeting live</p>
+            <div class="mic-waveform" id="offlineMicWaveform"></div>
+            <button class="mic-big-btn idle" id="offlineMicBtn" onclick="toggleOfflineMicRecording()">🎙️</button>
+            <div class="mic-timer" id="offlineMicTimer">00:00</div>
+            <div class="mic-status-label idle-label" id="offlineMicStatusLabel">Tap to start recording</div>
+            <div class="mic-hint" id="offlineMicHint">Audio is converted to WAV automatically before analysis</div>
+          </div>
+        </div>
+
+        <!-- FILE UPLOAD PANEL -->
+        <div id="filePanel" style="display:none;">
+          <div class="file-upload-zone">
+            <div class="file-drop-area" id="fileDropArea"
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)"
+                 ondrop="handleDrop(event)"
+                 onclick="document.getElementById('fileInput').click()">
+              <span class="file-drop-icon">📂</span>
+              <div class="file-drop-title">Drop your recording here</div>
+              <div class="file-drop-sub">or click to browse files</div>
+              <button class="file-browse-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+                📋 Browse Files
+              </button>
+            </div>
+            <div class="file-formats">Supported: .wav · .mp3 · .mp4 · .m4a · .ogg · .flac · .webm</div>
+            <input type="file" id="fileInput" accept=".wav,.mp3,.mp4,.m4a,.ogg,.flac,.webm,audio/*,video/mp4"
+                   onchange="handleFileSelect(event)" />
+          </div>
+        </div>
+
+        <div class="converting-row" id="convertingRow">
+          <div class="converting-spinner"></div>
+          <span class="converting-text" id="convertingText">Preparing audio…</span>
+        </div>
+
+        <div class="offline-recorded-file" id="offlineRecordedFile">
+          <span class="offline-recorded-file-icon" id="offlineFileIcon">🎙️</span>
+          <span class="offline-recorded-file-name" id="offlineRecordedName">recording.wav</span>
+          <span class="offline-recorded-file-dur" id="offlineRecordedDur"></span>
+          <button class="offline-clear-btn" onclick="clearOfflineRecording()">✕</button>
+        </div>
+
+        <button class="offline-analyze-btn" id="offlineAnalyzeBtn" disabled onclick="startOfflineAnalysis()">
+          🧠 Start Analysis
+        </button>
+
+        <div class="progress-panel" id="offlineProgressPanel">
+          <div class="progress-panel-header">
+            <span class="progress-panel-title">Analysis in progress</span>
+            <span class="progress-pct" id="offlineProgressPct">0%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="offlineProgressBar"></div>
+          </div>
+          <div class="progress-steps" id="offlineSteps">
+            <div class="progress-step waiting" id="step-noise">
+              <span class="step-icon">🔇</span>
+              <div class="step-info"><div class="step-name">Noise Reduction</div><div class="step-detail" id="step-noise-detail">DeepFilterNet</div></div>
+              <span class="step-time" id="step-noise-time"></span>
+            </div>
+            <div class="progress-step waiting" id="step-diarization">
+              <span class="step-icon">👥</span>
+              <div class="step-info"><div class="step-name">Speaker Diarization</div><div class="step-detail" id="step-diarization-detail">PyAnnote</div></div>
+              <span class="step-time" id="step-diarization-time"></span>
+            </div>
+            <div class="progress-step waiting" id="step-transcription">
+              <span class="step-icon">📝</span>
+              <div class="step-info"><div class="step-name">Transcription</div><div class="step-detail" id="step-transcription-detail">Whisper large-v3</div></div>
+              <span class="step-time" id="step-transcription-time"></span>
+            </div>
+            <div class="progress-step waiting" id="step-identification">
+              <span class="step-icon">🎤</span>
+              <div class="step-info"><div class="step-name">Speaker Identification</div><div class="step-detail" id="step-identification-detail">Matching embeddings</div></div>
+              <span class="step-time" id="step-identification-time"></span>
+            </div>
+            <div class="progress-step waiting" id="step-cleaning">
+              <span class="step-icon">✂️</span>
+              <div class="step-info"><div class="step-name">Transcript Cleaning</div><div class="step-detail" id="step-cleaning-detail">LLM refinement</div></div>
+              <span class="step-time" id="step-cleaning-time"></span>
+            </div>
+            <div class="progress-step waiting" id="step-summary">
+              <span class="step-icon">📊</span>
+              <div class="step-info"><div class="step-name">Summary Generation</div><div class="step-detail" id="step-summary-detail">Qwen processor</div></div>
+              <span class="step-time" id="step-summary-time"></span>
+            </div>
+          </div>
+
+          <div class="view-report-banner" id="viewReportBanner">
+            <span class="view-report-banner-text">✅ Analysis complete! Report is ready.</span>
+            <button class="view-report-btn" id="viewReportBannerBtn" onclick="">
+              📄 View Report →
+            </button>
+          </div>
+        </div>
+
+        <div class="result-panel" id="offlineResultPanel">
+          <div class="result-panel-header">
+            <div class="result-panel-title">✅ Analysis Complete</div>
+            <span class="result-meta" id="resultMeta"></span>
+          </div>
+          <div class="result-overview" id="resultOverview">Overview loading…</div>
+          <div>
+            <div class="result-section-title">Action Items</div>
+            <div class="task-chips" id="resultTasks"></div>
+          </div>
+          <div class="result-actions">
+            <button class="result-btn view" id="viewResultBtn">View Full Report →</button>
+            <button class="result-btn new" onclick="resetOfflineMode()">New Analysis</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VOICE ENROLLMENT VIEW -->
+    <div class="view" id="view-enrollment">
+      <div class="enroll-header">
+        <h2>Voice Enrollment</h2>
+      </div>
+      <div class="enroll-body">
+
+        <div class="enroll-form">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-input" id="enrollName" placeholder="e.g. Manan Patel" oninput="checkEnrollReady()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role / Title</label>
+            <input type="text" class="form-input" id="enrollRole" placeholder="e.g. Product Manager" />
+          </div>
+
+          <div class="script-helper-banner">
+            <div class="script-helper-left">
+              <span class="script-helper-icon">📝</span>
+              <span class="script-helper-text"><strong>Not sure what to say?</strong> We have a ready script for you.</span>
+            </div>
+            <button class="script-helper-btn" onclick="toggleScript()">Show Script</button>
+          </div>
+
+          <div class="script-card" id="scriptCard">
+            <div class="script-card-header">
+              <span class="script-card-title">📋 40-Second Speaking Script</span>
+              <button class="script-card-close" onclick="toggleScript()">✕</button>
+            </div>
+            <div class="script-card-body">
+              Hello, my name is <em>[say your name]</em> and I work as <em>[say your role]</em>.<br><br>
+              I'm recording this voice sample so the AI can recognize me during meetings.
+              Let me tell you a little about what I do at work.<br><br>
+              Every day I collaborate with my team to plan tasks, review progress, and solve problems.
+              We have regular meetings where we discuss project updates, deadlines, and new ideas.
+              Good communication is key to making sure everyone stays aligned and the project moves forward smoothly.<br><br>
+              I enjoy working with data, making decisions, and helping the team achieve its goals.
+              Thank you for listening — this concludes my voice enrollment sample.
+            </div>
+            <div class="script-card-tip">💡 Minimum 40 Seconds Audio Required</div>
+          </div>
+
+          <div class="enroll-recorder" id="enrollRecorder">
+            <div class="enroll-waveform" id="enrollWaveform"></div>
+            <button class="enroll-mic-btn idle" id="enrollMicBtn" onclick="toggleEnrollRecording()">🎙️</button>
+            <div class="enroll-rec-timer" id="enrollRecTimer">00:00</div>
+            <div class="enroll-progress-wrap" id="enrollProgressWrap">
+              <div class="enroll-progress-label">
+                <span>Recording progress</span>
+                <span id="enrollProgressLabel">0 / 40s</span>
+              </div>
+              <div class="enroll-progress-track">
+                <div class="enroll-progress-fill" id="enrollProgressFill"></div>
+              </div>
+            </div>
+            <div class="enroll-rec-hint" id="enrollRecHint">Tap mic to start · Speak clearly for 40 seconds</div>
+            <div style="display:none" id="enrollRecordedInfo">
+              <span style="font-size:12px;color:var(--green);">✓ Recording ready — </span>
+              <span style="font-size:12px;color:var(--text2);" id="enrollRecordedDuration"></span>
+            </div>
+          </div>
+
+          <button class="enroll-submit-btn" id="enrollSubmitBtn" disabled onclick="submitEnrollment()">
+            ✅ Enroll Speaker
+          </button>
+        </div>
+
+        <div class="speakers-section">
+          <div class="speakers-section-header">
+            <span class="speakers-section-title">Enrolled Speakers</span>
+            <span class="speakers-count" id="speakersCount">0 speakers</span>
+          </div>
+          <div id="speakersList">
+            <div class="no-speakers" id="noSpeakers">
+              <span>👤</span>
+              No speakers enrolled yet. Add someone above so the AI can identify them in meetings.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SETTINGS VIEW — Only Data Storage Locations -->
+    <div class="view" id="view-settings">
+      <div class="settings-header">
+        <button class="settings-back" onclick="showView('home')">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <h2>Settings</h2>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section">
+          <h3>Data Storage Locations</h3>
+          <div class="section-desc">Where Xomic Meetily stores your data on this device</div>
+          <div class="path-item">
+            <div class="path-item-label">Meeting Recordings</div>
+            <div class="path-item-value" id="pathRecordingsVal">Loading…</div>
+            <button class="path-open-btn" onclick="copyPath('recordings')">📋 Copy Path</button>
+          </div>
+          <div class="path-item">
+            <div class="path-item-label">Voice Enrollments</div>
+            <div class="path-item-value" id="pathEnrollmentsVal">Loading…</div>
+            <button class="path-open-btn" onclick="copyPath('enrollments')">📋 Copy Path</button>
+          </div>
+          <div class="path-item">
+            <div class="path-item-label">Meeting Outputs (JSON)</div>
+            <div class="path-item-value" id="pathOutputsVal">Loading…</div>
+            <button class="path-open-btn" onclick="copyPath('outputs')">📋 Copy Path</button>
+          </div>
+          <div class="path-item">
+            <div class="path-item-label">Speaker Embeddings</div>
+            <div class="path-item-value" id="pathEmbeddingsVal">Loading…</div>
+            <button class="path-open-btn" onclick="copyPath('embeddings')">📋 Copy Path</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  const BACKEND = APP_CONFIG.BACKEND_URL;
+  const STORAGE_KEY = 'xomic_meetily_notes';
+
+  let offlineMicMediaRecorder = null;
+  let offlineMicChunks        = [];
+  let offlineMicTimer         = null;
+  let offlineMicSeconds       = 0;
+  let offlineMicBlob          = null;
+  let offlineFinalBlob        = null;
+  let offlineFinalFilename    = '';
+  let currentOfflineJobId     = null;
+  let currentInputMode        = 'mic';
+
+  let enrollMediaRecorder = null;
+  let enrollChunks        = [];
+  let enrollTimer         = null;
+  let enrollSeconds       = 0;
+  let enrollRecordedBlob  = null;
+
+  function switchInputMode(mode) {
+    currentInputMode = mode;
+    document.getElementById('modeTabMic').classList.toggle('active', mode === 'mic');
+    document.getElementById('modeTabFile').classList.toggle('active', mode === 'file');
+    document.getElementById('micPanel').style.display  = mode === 'mic'  ? 'block' : 'none';
+    document.getElementById('filePanel').style.display = mode === 'file' ? 'block' : 'none';
+    clearOfflineRecording();
+  }
+
+  async function convertToWav(inputBlob, statusCallback) {
+    statusCallback('Decoding audio…');
+    const arrayBuffer = await inputBlob.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let decoded;
+    try {
+      decoded = await audioCtx.decodeAudioData(arrayBuffer);
+    } finally {
+      audioCtx.close();
+    }
+    statusCallback('Encoding WAV…');
+    const numChannels = decoded.numberOfChannels;
+    const length      = decoded.length;
+    const sampleRate  = decoded.sampleRate;
+    const mixed       = new Float32Array(length);
+    for (let ch = 0; ch < numChannels; ch++) {
+      const chData = decoded.getChannelData(ch);
+      for (let i = 0; i < length; i++) mixed[i] += chData[i];
+    }
+    for (let i = 0; i < length; i++) mixed[i] /= numChannels;
+    return encodeWav(mixed, sampleRate);
+  }
+
+  function encodeWav(samples, sampleRate) {
+    const buffer     = new ArrayBuffer(44 + samples.length * 2);
+    const view       = new DataView(buffer);
+    const numSamples = samples.length;
+    function writeStr(offset, str) { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); }
+    function writeU16(offset, v) { view.setUint16(offset, v, true); }
+    function writeU32(offset, v) { view.setUint32(offset, v, true); }
+    writeStr(0,  'RIFF'); writeU32(4, 36 + numSamples * 2);
+    writeStr(8,  'WAVE'); writeStr(12, 'fmt ');
+    writeU32(16, 16); writeU16(20, 1); writeU16(22, 1);
+    writeU32(24, sampleRate); writeU32(28, sampleRate * 2);
+    writeU16(32, 2); writeU16(34, 16);
+    writeStr(36, 'data'); writeU32(40, numSamples * 2);
+    let offset = 44;
+    for (let i = 0; i < numSamples; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      offset += 2;
+    }
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  function handleDragOver(e) { e.preventDefault(); document.getElementById('fileDropArea').classList.add('dragover'); }
+  function handleDragLeave(e) { document.getElementById('fileDropArea').classList.remove('dragover'); }
+  function handleDrop(e) {
+    e.preventDefault(); document.getElementById('fileDropArea').classList.remove('dragover');
+    const file = e.dataTransfer.files[0]; if (file) processUploadedFile(file);
+  }
+  function handleFileSelect(e) {
+    const file = e.target.files[0]; if (file) processUploadedFile(file); e.target.value = '';
+  }
+
+  async function processUploadedFile(file) {
+    const name = file.name; const ext = name.split('.').pop().toLowerCase();
+    document.getElementById('offlineRecordedFile').classList.remove('visible');
+    document.getElementById('offlineAnalyzeBtn').disabled = true;
+    if (ext === 'wav') {
+      offlineFinalBlob = file; offlineFinalFilename = name;
+      setReadyFile('📄', name, formatBytes(file.size)); return;
+    }
+    document.getElementById('convertingRow').classList.add('visible');
+    try {
+      const wavBlob = await convertToWav(file, (msg) => { document.getElementById('convertingText').textContent = msg; });
+      offlineFinalBlob = wavBlob; offlineFinalFilename = name.replace(/\.[^.]+$/, '') + '.wav';
+      setReadyFile('📄', offlineFinalFilename, formatBytes(wavBlob.size));
+    } catch (err) { showToast('❌ Could not decode audio: ' + err.message, 'error'); }
+    finally { document.getElementById('convertingRow').classList.remove('visible'); }
+  }
+
+  function setReadyFile(icon, name, meta) {
+    document.getElementById('offlineFileIcon').textContent  = icon;
+    document.getElementById('offlineRecordedName').textContent = name;
+    document.getElementById('offlineRecordedDur').textContent  = meta;
+    document.getElementById('offlineRecordedFile').classList.add('visible');
+    document.getElementById('offlineAnalyzeBtn').disabled = false;
+  }
+
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
+  }
+
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    const navEl = document.getElementById('nav-' + name);
+    if (navEl) navEl.classList.add('active');
+    if (name === 'settings')   loadSettings();
+    if (name === 'enrollment') loadSpeakers();
+    if (name === 'notes')      rebuildNotesList();
+    if (name === 'offline')    showOfflineChoiceModal();
+  }
+
+  // ── localStorage helpers ───────────────────────────────
+  function loadPersistedJobs() {
+    try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
+    catch (_) { return []; }
+  }
+
+  // ── KEY FIX: persist the FULL job object including result ──
+  function persistJob(job) {
+    try {
+      const jobs = loadPersistedJobs();
+      const idx = jobs.findIndex(j => j.id === job.id);
+      if (idx !== -1) jobs.splice(idx, 1);
+      jobs.unshift(job);
+      // Keep up to 50 jobs. Each job stores the full result so it works without backend.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs.slice(0, 50)));
+    } catch (e) {
+      // If localStorage is full (large transcripts), try storing without transcript
+      try {
+        const jobs = loadPersistedJobs();
+        const idx = jobs.findIndex(j => j.id === job.id);
+        if (idx !== -1) jobs.splice(idx, 1);
+        const slimJob = { ...job };
+        if (slimJob.result) {
+          slimJob.result = { ...slimJob.result, transcript: [] };
+        }
+        jobs.unshift(slimJob);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs.slice(0, 50)));
+      } catch (_) {}
+    }
+  }
+
+  function clearPersistedJobs() { try { localStorage.removeItem(STORAGE_KEY); } catch (_) {} }
+
+  function rebuildNotesList() {
+    const list    = document.getElementById('notesList');
+    const emptyEl = document.getElementById('notesEmpty');
+    const clearBtn = document.getElementById('notesClearBtn');
+    const jobs    = loadPersistedJobs();
+    list.querySelectorAll('.note-card').forEach(el => el.remove());
+    if (jobs.length === 0) { emptyEl.style.display = ''; clearBtn.style.display = 'none'; return; }
+    emptyEl.style.display = 'none'; clearBtn.style.display = 'flex';
+    jobs.forEach(job => _appendNoteCard(job, list, emptyEl));
+  }
+
+  function _appendNoteCard(job, list, emptyEl) {
+    emptyEl = emptyEl || document.getElementById('notesEmpty');
+    list    = list    || document.getElementById('notesList');
+    const card = document.createElement('div');
+    card.className = 'note-card';
+    card.dataset.jobId = job.id;
+    card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;transition:border-color 0.15s;';
+    card.onmouseenter = () => card.style.borderColor = 'var(--accent)';
+    card.onmouseleave = () => card.style.borderColor = 'var(--border)';
+    const summary = job.result?.summary || {};
+    const dateStr = new Date(job.created_at * 1000).toLocaleString();
+    const pipeMin = Math.round((job.result?.total_pipeline_s || 0) / 60);
+    card.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px;">
+        <div style="font-size:13.5px;font-weight:600;">${escHtml(job.name)}</div>
+        <a href="/results/index.html?job_id=${encodeURIComponent(job.id)}"
+           onclick="event.stopPropagation();"
+           style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:8px;
+                  background:linear-gradient(135deg,var(--accent),#818cf8);color:#fff;
+                  font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;">
+          📄 View Report
+        </a>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">
+        ${dateStr}${pipeMin ? ' · ' + pipeMin + ' min processing' : ''}
+      </div>
+      <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">${escHtml(summary.overview || 'No overview available.')}</div>
+      ${(summary.tasks || []).length ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${summary.tasks.map(t => `<span style="background:var(--accent-dim);color:var(--accent2);padding:3px 10px;border-radius:6px;font-size:11.5px;">${escHtml(t.title || String(t))}</span>`).join('')}
+      </div>` : ''}`;
+    card.onclick = () => { window.location.href = `/results/index.html?job_id=${encodeURIComponent(job.id)}`; };
+    list.insertBefore(card, emptyEl);
+  }
+
+  function clearAllNotes() {
+    if (!confirm('Clear all saved meeting notes? This cannot be undone.')) return;
+    clearPersistedJobs(); rebuildNotesList(); showToast('🗑️ All notes cleared', '');
+  }
+
+  function renderMeetingNote(job) {
+    persistJob(job);
+    const list    = document.getElementById('notesList');
+    const emptyEl = document.getElementById('notesEmpty');
+    document.getElementById('notesClearBtn').style.display = 'flex';
+    emptyEl.style.display = 'none';
+    list.querySelectorAll('.note-card').forEach(el => { if (el.dataset && el.dataset.jobId === job.id) el.remove(); });
+    _appendNoteCard(job, list, emptyEl);
+  }
+
+  // ── Offline Mic Recording ──
+  (function buildOfflineWaveform() {
+    const el = document.getElementById('offlineMicWaveform');
+    for (let i = 0; i < 22; i++) {
+      const bar = document.createElement('div'); bar.className = 'mic-bar';
+      bar.style.animationDelay    = (Math.random() * 1.2) + 's';
+      bar.style.animationDuration = (0.7 + Math.random() * 0.8) + 's';
+      el.appendChild(bar);
+    }
+  })();
+
+  async function toggleOfflineMicRecording() {
+    if (offlineMicMediaRecorder && offlineMicMediaRecorder.state === 'recording') stopOfflineMicRecording();
+    else startOfflineMicRecording();
+  }
+
+  async function startOfflineMicRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      offlineMicMediaRecorder = new MediaRecorder(stream);
+      offlineMicChunks = []; offlineMicSeconds = 0; offlineMicBlob = null; offlineFinalBlob = null;
+      offlineMicMediaRecorder.ondataavailable = e => offlineMicChunks.push(e.data);
+      offlineMicMediaRecorder.start(1000);
+      const btn = document.getElementById('offlineMicBtn');
+      btn.classList.remove('idle'); btn.classList.add('recording'); btn.textContent = '⏹';
+      document.getElementById('offlineMicWaveform').classList.add('active');
+      document.getElementById('offlineMicStatusLabel').className = 'mic-status-label rec-label';
+      document.getElementById('offlineMicStatusLabel').innerHTML = '<div class="rec-dot-small"></div> Recording in progress…';
+      document.getElementById('offlineMicHint').textContent = 'Tap to stop and convert for analysis';
+      document.getElementById('offlineRecordedFile').classList.remove('visible');
+      document.getElementById('offlineAnalyzeBtn').disabled = true;
+      offlineMicTimer = setInterval(() => {
+        offlineMicSeconds++;
+        document.getElementById('offlineMicTimer').textContent = fmtTime(offlineMicSeconds);
+      }, 1000);
+    } catch (err) { showToast('❌ Microphone access denied: ' + err.message, 'error'); }
+  }
+
+  function stopOfflineMicRecording() {
+    if (!offlineMicMediaRecorder) return;
+    offlineMicMediaRecorder.stop(); offlineMicMediaRecorder.stream.getTracks().forEach(t => t.stop());
+    clearInterval(offlineMicTimer);
+    const btn = document.getElementById('offlineMicBtn');
+    btn.classList.remove('recording'); btn.classList.add('idle'); btn.textContent = '🎙️';
+    document.getElementById('offlineMicWaveform').classList.remove('active');
+    document.getElementById('offlineMicStatusLabel').className = 'mic-status-label idle-label';
+    document.getElementById('offlineMicStatusLabel').textContent = 'Converting audio…';
+    document.getElementById('offlineMicHint').textContent = 'Please wait…';
+    offlineMicMediaRecorder.onstop = async () => {
+      offlineMicBlob = new Blob(offlineMicChunks, { type: 'audio/webm' });
+      const dur = fmtTime(offlineMicSeconds); const fname = `recording_${Date.now()}`;
+      document.getElementById('convertingRow').classList.add('visible');
+      document.getElementById('convertingText').textContent = 'Converting WebM → WAV…';
+      try {
+        const wavBlob = await convertToWav(offlineMicBlob, (msg) => { document.getElementById('convertingText').textContent = msg; });
+        offlineFinalBlob = wavBlob; offlineFinalFilename = fname + '.wav';
+        setReadyFile('🎙️', offlineFinalFilename, dur + ' recorded');
+      } catch (err) { showToast('❌ Audio conversion failed: ' + err.message, 'error'); }
+      finally { document.getElementById('convertingRow').classList.remove('visible'); }
+      document.getElementById('offlineMicStatusLabel').textContent = 'Recording ready';
+      document.getElementById('offlineMicHint').textContent = 'Tap mic to record again';
+    };
+  }
+
+  function clearOfflineRecording() {
+    offlineMicBlob = null; offlineFinalBlob = null; offlineFinalFilename = '';
+    document.getElementById('offlineRecordedFile').classList.remove('visible');
+    document.getElementById('convertingRow').classList.remove('visible');
+    document.getElementById('offlineMicTimer').textContent = '00:00';
+    document.getElementById('offlineMicStatusLabel').className = 'mic-status-label idle-label';
+    document.getElementById('offlineMicStatusLabel').textContent = 'Tap to start recording';
+    document.getElementById('offlineMicHint').textContent = 'Audio is converted to WAV automatically before analysis';
+    document.getElementById('offlineAnalyzeBtn').disabled = true;
+    offlineMicSeconds = 0;
+  }
+
+  const STEP_MAP = {
+    noise_reduction:        'noise',
+    diarization:            'diarization',
+    transcription:          'transcription',
+    speaker_identification: 'identification',
+    transcript_cleaning:    'cleaning',
+    summary_generation:     'summary',
+  };
+  const STEP_ORDER = ['noise','diarization','transcription','identification','cleaning','summary'];
+
+  async function startOfflineAnalysis() {
+    if (!offlineFinalBlob) return;
+    const btn = document.getElementById('offlineAnalyzeBtn');
+    btn.disabled = true; btn.textContent = '⏳ Uploading…';
+    STEP_ORDER.forEach(id => setStepState(id, 'waiting', '', ''));
+    document.getElementById('offlineProgressPanel').classList.add('visible');
+    document.getElementById('offlineResultPanel').classList.remove('visible');
+    document.getElementById('viewReportBanner').classList.remove('visible');
+    document.getElementById('offlineProgressPct').textContent = '0%';
+    document.getElementById('offlineProgressBar').style.width = '0%';
+    try {
+      const filename  = offlineFinalFilename || `recording_${Date.now()}.wav`;
+      const audioFile = new File([offlineFinalBlob], filename, { type: 'audio/wav' });
+      const formData  = new FormData(); formData.append('audio_file', audioFile);
+      const res = await fetch(`${BACKEND}/analyze`, { method: 'POST', body: formData });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Server error'); }
+      const data = await res.json();
+      currentOfflineJobId = data.job_id; btn.textContent = '⏳ Analyzing…';
+      listenOfflineProgress(data.job_id);
+    } catch (err) {
+      showToast('❌ ' + err.message, 'error');
+      btn.disabled = false; btn.textContent = '🧠 Start Analysis';
+    }
+  }
+
+  function listenOfflineProgress(jobId) {
+    const es = new EventSource(`${BACKEND}/jobs/${jobId}/stream`);
+    es.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'progress') {
+        const stepKey = STEP_MAP[data.step];
+        if (stepKey) {
+          const idx = STEP_ORDER.indexOf(stepKey);
+          STEP_ORDER.forEach((id, i) => {
+            if (i < idx)        setStepState(id, 'done',   '',            '');
+            else if (i === idx) setStepState(id, 'active', data.message, data.elapsed + 's');
+            else                setStepState(id, 'waiting','',           '');
+          });
+        }
+        document.getElementById('offlineProgressPct').textContent = data.progress + '%';
+        document.getElementById('offlineProgressBar').style.width = data.progress + '%';
+      } else if (data.type === 'complete') {
+        es.close(); STEP_ORDER.forEach(id => setStepState(id, 'done', '', ''));
+        document.getElementById('offlineProgressPct').textContent = '100%';
+        document.getElementById('offlineProgressBar').style.width = '100%';
+        showOfflineResult(jobId);
+      } else if (data.type === 'error') {
+        es.close(); showToast('❌ Analysis failed: ' + data.error, 'error');
+        document.getElementById('offlineAnalyzeBtn').disabled = false;
+        document.getElementById('offlineAnalyzeBtn').textContent = '🧠 Start Analysis';
+      }
+    };
+    es.onerror = () => es.close();
+  }
+
+  function setStepState(id, state, detail, time) {
+    const el = document.getElementById('step-' + id); if (!el) return;
+    el.className = 'progress-step ' + state;
+    const icons = { noise:'🔇', diarization:'👥', transcription:'📝', identification:'🎤', cleaning:'✂️', summary:'📊' };
+    const icon  = state === 'done' ? '✅' : (state === 'active' ? '⟳' : icons[id]);
+    el.querySelector('.step-icon').textContent = icon;
+    if (detail) el.querySelector('.step-detail').textContent = detail;
+    if (time)   el.querySelector('.step-time').textContent   = time;
+  }
+
+  async function showOfflineResult(jobId) {
+    try {
+      const res  = await fetch(`${BACKEND}/jobs/${jobId}`);
+      const job  = await res.json();
+      const summary = job.result?.summary || {};
+      const dur  = job.result?.audio_duration_s || 0;
+      const pipe = job.result?.total_pipeline_s || 0;
+      document.getElementById('resultOverview').textContent = summary.overview || 'No overview available.';
+      document.getElementById('resultMeta').textContent = `${Math.round(dur/60)}min audio · ${Math.round(pipe)}s pipeline`;
+      const tasks = summary.tasks || [];
+      document.getElementById('resultTasks').innerHTML = tasks.length
+        ? tasks.map(t => `<span class="task-chip">${escHtml(t.title || String(t))}</span>`).join('')
+        : '<span style="font-size:12px;color:var(--text2);">No tasks extracted</span>';
+      const reportUrl = `../results/index.html?job_id=${encodeURIComponent(jobId)}`;
+      document.getElementById('viewResultBtn').onclick      = () => { window.location.href = reportUrl; };
+      document.getElementById('viewReportBannerBtn').onclick = () => { window.location.href = reportUrl; };
+      document.getElementById('viewReportBanner').classList.add('visible');
+      document.getElementById('offlineResultPanel').classList.add('visible');
+      document.getElementById('offlineAnalyzeBtn').textContent = '🧠 Start Analysis';
+
+      // ── KEY FIX: persist the complete job so results page works after server restart ──
+      renderMeetingNote(job);
+      showToast('🎉 Analysis complete!', 'success');
+    } catch (_) {}
+  }
+
+  function resetOfflineMode() {
+    clearOfflineRecording();
+    document.getElementById('offlineProgressPanel').classList.remove('visible');
+    document.getElementById('offlineResultPanel').classList.remove('visible');
+    document.getElementById('viewReportBanner').classList.remove('visible');
+    document.getElementById('offlineAnalyzeBtn').disabled = true;
+    document.getElementById('offlineAnalyzeBtn').textContent = '🧠 Start Analysis';
+    STEP_ORDER.forEach(id => setStepState(id, 'waiting', '', ''));
+  }
+
+  // ── Voice Enrollment ──
+  (function buildEnrollWaveform() {
+    const el = document.getElementById('enrollWaveform');
+    for (let i = 0; i < 16; i++) {
+      const bar = document.createElement('div'); bar.className = 'enroll-bar';
+      bar.style.animationDelay    = (Math.random() * 1.2) + 's';
+      bar.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+      el.appendChild(bar);
+    }
+  })();
+
+  async function toggleEnrollRecording() {
+    if (enrollMediaRecorder && enrollMediaRecorder.state === 'recording') stopEnrollRecording();
+    else startEnrollRecording();
+  }
+  async function startEnrollRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      enrollMediaRecorder = new MediaRecorder(stream);
+      enrollChunks = []; enrollSeconds = 0; enrollRecordedBlob = null;
+      enrollMediaRecorder.ondataavailable = e => enrollChunks.push(e.data);
+      enrollMediaRecorder.start(1000);
+      const btn = document.getElementById('enrollMicBtn');
+      btn.className = 'enroll-mic-btn recording'; btn.textContent = '⏹';
+      document.getElementById('enrollRecHint').textContent = 'Speak clearly… tap to stop';
+      document.getElementById('enrollRecordedInfo').style.display = 'none';
+      document.getElementById('enrollProgressWrap').classList.add('visible');
+      document.querySelectorAll('.enroll-bar').forEach(b => b.classList.add('active'));
+      enrollTimer = setInterval(() => {
+        enrollSeconds++;
+        document.getElementById('enrollRecTimer').textContent = fmtTime(enrollSeconds);
+        const pct = Math.min(100, (enrollSeconds / 40) * 100);
+        const fill  = document.getElementById('enrollProgressFill');
+        const label = document.getElementById('enrollProgressLabel');
+        if (fill)  fill.style.width  = pct + '%';
+        if (label) label.textContent = `${enrollSeconds} / 40s`;
+        if (enrollSeconds >= 40) { document.getElementById('enrollRecHint').textContent = '✅ Great! You can stop now or keep going.'; }
+      }, 1000);
+    } catch (err) { showToast('❌ Microphone error: ' + err.message, 'error'); }
+  }
+  function stopEnrollRecording() {
+    if (!enrollMediaRecorder) return;
+    enrollMediaRecorder.stop(); enrollMediaRecorder.stream.getTracks().forEach(t => t.stop());
+    clearInterval(enrollTimer);
+    const btn = document.getElementById('enrollMicBtn');
+    btn.className = 'enroll-mic-btn idle'; btn.textContent = '🎙️';
+    document.getElementById('enrollRecHint').textContent = 'Recording complete — ready to enroll';
+    document.querySelectorAll('.enroll-bar').forEach(b => b.classList.remove('active'));
+    enrollMediaRecorder.onstop = () => {
+      enrollRecordedBlob = new Blob(enrollChunks, { type: 'audio/webm' });
+      document.getElementById('enrollRecordedDuration').textContent = fmtTime(enrollSeconds) + ' recorded';
+      document.getElementById('enrollRecordedInfo').style.display = 'block';
+      checkEnrollReady();
+    };
+  }
+
+  function checkEnrollReady() {
+    const name = document.getElementById('enrollName').value.trim();
+    document.getElementById('enrollSubmitBtn').disabled = !(name && enrollRecordedBlob);
+  }
+
+  async function submitEnrollment() {
+    const name = document.getElementById('enrollName').value.trim();
+    const role = document.getElementById('enrollRole').value.trim();
+    if (!name)               { showToast('❌ Please enter a name', 'error'); return; }
+    if (!enrollRecordedBlob) { showToast('❌ Please record audio first', 'error'); return; }
+    const btn = document.getElementById('enrollSubmitBtn');
+    btn.disabled = true; btn.textContent = '⏳ Enrolling…';
+    try {
+      const wavBlob   = await convertToWav(enrollRecordedBlob, () => {});
+      const audioFile = new File([wavBlob], `${name.replace(/\s+/g,'_')}_enroll.wav`, { type: 'audio/wav' });
+      const formData  = new FormData();
+      formData.append('name', name); formData.append('role', role); formData.append('audio_file', audioFile);
+      const res = await fetch(`${BACKEND}/speakers/enroll`, { method: 'POST', body: formData });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Enrollment failed'); }
+      showToast(`✅ ${name} enrolled successfully!`, 'success');
+      document.getElementById('enrollName').value  = '';
+      document.getElementById('enrollRole').value  = '';
+      enrollRecordedBlob = null;
+      document.getElementById('enrollRecTimer').textContent = '00:00';
+      document.getElementById('enrollRecordedInfo').style.display = 'none';
+      document.getElementById('enrollRecHint').textContent = 'Tap mic to start · Speak clearly for 40 seconds';
+      const fill  = document.getElementById('enrollProgressFill');
+      const label = document.getElementById('enrollProgressLabel');
+      const wrap  = document.getElementById('enrollProgressWrap');
+      if (fill)  fill.style.width  = '0%';
+      if (label) label.textContent = '0 / 40s';
+      if (wrap)  wrap.classList.remove('visible');
+      btn.textContent = '✅ Enroll Speaker'; checkEnrollReady(); loadSpeakers();
+    } catch (err) {
+      showToast('❌ ' + err.message, 'error'); btn.disabled = false; btn.textContent = '✅ Enroll Speaker';
+    }
+  }
+
+  async function loadSpeakers() {
+    try {
+      const res  = await fetch(`${BACKEND}/speakers`); const data = await res.json();
+      const list = document.getElementById('speakersList');
+      document.getElementById('speakersCount').textContent = `${data.count} speaker${data.count !== 1 ? 's' : ''}`;
+      if (data.count === 0) { list.innerHTML = `<div class="no-speakers"><span>👤</span>No speakers enrolled yet.</div>`; return; }
+      list.innerHTML = data.speakers.map(s => {
+        const initials = s.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+        return `<div class="speaker-card">
+          <div class="speaker-avatar">${initials}</div>
+          <div class="speaker-info"><div class="speaker-name">${escHtml(s.name)}</div><div class="speaker-role">${escHtml(s.role || 'No role set')}</div></div>
+          <button class="speaker-delete" onclick="deleteSpeaker('${escHtml(s.id)}', '${escHtml(s.name)}')" title="Remove">🗑️</button>
+        </div>`;
+      }).join('');
+    } catch (_) {
+      document.getElementById('speakersList').innerHTML = `<div class="no-speakers"><span>⚠️</span>Could not load speakers.</div>`;
+    }
+  }
+
+  async function deleteSpeaker(id, name) {
+    if (!confirm(`Remove "${name}" from enrolled speakers?`)) return;
+    try {
+      const res = await fetch(`${BACKEND}/speakers/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      showToast(`🗑️ ${name} removed`, ''); loadSpeakers();
+    } catch (err) { showToast('❌ ' + err.message, 'error'); }
+  }
+
+  // ── Settings — only loads paths now ──
+  async function loadSettings() {
+    // ── 1. Resolve local paths via Tauri (per-user, per-machine) ──────────
+    let localRecordings = 'Unavailable';
+    let localOutputs    = 'Unavailable';
+    try {
+      if (window.__TAURI__?.path) {
+        const appDir = await window.__TAURI__.path.appLocalDataDir();
+        // Tauri returns something like: C:\Users\name\AppData\Local\xomic-meetily\
+        // Strip trailing slash for consistency
+        const base = appDir.replace(/[\\/]+$/, '');
+        const sep  = base.includes('\\') ? '\\' : '/';
+        localRecordings = `${base}${sep}recordings`;
+        localOutputs    = `${base}${sep}outputs`;
+      } else {
+        // Running in browser dev mode — fall back to a readable placeholder
+        localRecordings = '<app-data>/recordings  (run via Tauri for real path)';
+        localOutputs    = '<app-data>/outputs     (run via Tauri for real path)';
+      }
+    } catch (tauriErr) {
+      console.warn('Tauri path API unavailable:', tauriErr);
+    }
+
+    document.getElementById('pathRecordingsVal').textContent = localRecordings;
+    document.getElementById('pathOutputsVal').textContent    = localOutputs;
+
+    // ── 2. Fetch server-side paths from backend (embeddings + enrollments) ─
+    try {
+      const pathsRes = await fetch(`${BACKEND}/paths`);
+      if (pathsRes.ok) {
+        const paths = await pathsRes.json();
+        document.getElementById('pathEnrollmentsVal').textContent = paths.enrollments        || '—';
+        document.getElementById('pathEmbeddingsVal').textContent  = paths.speaker_embeddings || '—';
+      } else {
+        document.getElementById('pathEnrollmentsVal').textContent = 'Backend offline';
+        document.getElementById('pathEmbeddingsVal').textContent  = 'Backend offline';
+      }
+    } catch (_) {
+      document.getElementById('pathEnrollmentsVal').textContent = 'Backend offline';
+      document.getElementById('pathEmbeddingsVal').textContent  = 'Backend offline';
+    }
+  }
+
+  function copyPath(key) {
+    const map = {
+      recordings:  document.getElementById('pathRecordingsVal').textContent,
+      enrollments: document.getElementById('pathEnrollmentsVal').textContent,
+      outputs:     document.getElementById('pathOutputsVal').textContent,
+      embeddings:  document.getElementById('pathEmbeddingsVal').textContent,
+    };
+    navigator.clipboard.writeText(map[key] || '').then(() => showToast('📋 Path copied to clipboard', 'success'));
+  }
+
+  function showToast(msg, type = '') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div'); toast.className = 'toast ' + type;
+    toast.textContent = msg; container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  function fmtTime(s) {
+    return String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
+  }
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  window.addEventListener('DOMContentLoaded', () => { rebuildNotesList(); });
+
+  async function showOfflineChoiceModal() {
+    document.getElementById('enrolledPill').classList.remove('visible');
+    document.getElementById('recommendedBadge').style.display = 'inline';
+    document.getElementById('offlineChoiceModal').classList.remove('hidden');
+    try {
+      const res  = await fetch(`${BACKEND}/speakers`);
+      const data = await res.json();
+      if (data.count > 0) {
+        const pill = document.getElementById('enrolledPill');
+        document.getElementById('enrolledPillText').textContent =
+          `${data.count} speaker${data.count > 1 ? 's' : ''} already enrolled`;
+        pill.classList.add('visible');
+        document.getElementById('recommendedBadge').style.display = 'none';
+        document.getElementById('offlineModalFooterNote').textContent =
+          `${data.count} voice profile${data.count > 1 ? 's' : ''} ready · enroll more anytime`;
+      }
+    } catch (_) {}
+  }
+
+  function goEnrollFromOfflineModal() {
+    document.getElementById('offlineChoiceModal').classList.add('hidden');
+    showView('enrollment');
+  }
+
+  function skipEnrollAndContinue() {
+    document.getElementById('offlineChoiceModal').classList.add('hidden');
+  }
+
+  let scriptVisible = false;
+  function toggleScript() {
+    scriptVisible = !scriptVisible;
+    document.getElementById('scriptCard').classList.toggle('visible', scriptVisible);
+    document.querySelector('.script-helper-btn').textContent = scriptVisible ? 'Hide Script' : 'Show Script';
+  }
+</script>
+</body>
+</html>

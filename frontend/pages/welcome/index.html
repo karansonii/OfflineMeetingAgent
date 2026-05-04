@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xomic Meetily</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #181c27;
+      --border:    #252a38;
+      --accent:    #6c63ff;
+      --accent2:   #a78bfa;
+      --green:     #22c55e;
+      --text:      #e8eaf0;
+      --muted:     #7a7f94;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Sora', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-y: auto;
+    }
+
+    /* ── Animated grid background ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow blob ── */
+    .glow {
+      position: fixed;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(108,99,255,0.18) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 0;
+      animation: pulse-glow 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+      50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.08); }
+    }
+
+    /* ── Main layout ── */
+    .container {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+      padding: 40px 32px 60px;
+      gap: 0;
+    }
+
+    /* ── Logo / badge ── */
+    .badge {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 18px 7px 10px;
+      margin-bottom: 28px;
+      opacity: 0; transform: translateY(12px);
+      animation: fade-up 0.6s ease 0.1s forwards;
+    }
+
+    .badge-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+
+    .badge span {
+      font-size: 13px; font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Heading ── */
+    h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 700;
+      line-height: 1.15;
+      text-align: center;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+      opacity: 0; transform: translateY(14px);
+      animation: fade-up 0.6s ease 0.2s forwards;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #a78bfa, #6c63ff, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 15px; color: var(--muted); font-weight: 400;
+      text-align: center; margin-bottom: 36px;
+      letter-spacing: 0.01em;
+      opacity: 0; transform: translateY(14px);
+      animation: fade-up 0.6s ease 0.3s forwards;
+    }
+
+    /* ── Feature card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 36px;
+      width: 100%; max-width: 460px;
+      display: flex; flex-direction: column; gap: 16px;
+      margin-bottom: 32px;
+      opacity: 0; transform: translateY(16px);
+      animation: fade-up 0.6s ease 0.4s forwards;
+    }
+
+    .feature {
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .feature-icon {
+      width: 38px; height: 38px; flex-shrink: 0;
+      border-radius: 10px;
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+    }
+
+    .feature-text { font-size: 14px; color: var(--text); font-weight: 400; line-height: 1.4; }
+
+    /* ── Button ── */
+    .btn {
+      width: 100%; max-width: 460px;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      font-family: 'Sora', sans-serif;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: all 0.3s ease;
+      opacity: 0;
+      animation: fade-up 0.6s ease 0.5s forwards;
+      background: linear-gradient(135deg, var(--accent), #818cf8);
+      color: #fff;
+      box-shadow: 0 0 28px rgba(108,99,255,0.35);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px rgba(108,99,255,0.5);
+    }
+
+    .btn:active { transform: translateY(0); }
+
+    /* ── Footer ── */
+    .footer {
+      position: fixed; bottom: 20px;
+      font-size: 11.5px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em;
+      opacity: 0; animation: fade-up 0.6s ease 0.6s forwards;
+    }
+
+    /* ── Animations ── */
+    @keyframes fade-up {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <script src="../config.js"></script>
+</head>
+<body>
+
+<div class="glow"></div>
+
+<div class="container">
+
+  <!-- Badge -->
+  <div class="badge">
+    <div class="badge-dot">🎙️</div>
+    <span>Xomic Infotech Pvt. Ltd.</span>
+  </div>
+
+  <!-- Heading -->
+  <h1>Welcome to <span>Xomic Meetily</span></h1>
+  <p class="subtitle">Record. Transcribe. Summarize. All on your device.</p>
+
+  <!-- Feature card -->
+  <div class="card">
+    <div class="feature">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-text">Your data never leaves your device</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-text">Intelligent summaries &amp; task extraction</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📡</div>
+      <div class="feature-text">Works offline, no cloud required</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🗣️</div>
+      <div class="feature-text">Identifies every speaker automatically</div>
+    </div>
+  </div>
+
+  <!-- Button -->
+  <button class="btn" onclick="goToHome()">
+    Get Started
+  </button>
+
+</div>
+
+<div class="footer">v1.0.0 · AI Meeting Agent</div>
+
+<script>
+  const API_BASE = APP_CONFIG.BACKEND_URL;
+  const BACKEND = APP_CONFIG.BACKEND_URL;
+
+  async function checkBackend() {
+    try {
+      const res = await fetch(`${API_BASE}/health`);
+      const data = await res.json();
+      console.log("Backend:", data);
+    } catch (err) {
+      console.error("Backend not reachable", err);
+    }
+  }
+
+
+function goToHome() {
+  console.log("Going to home page...");
+  window.location.href = "../home/index.html";
+}
+
+
+  // Call backend check when page loads
+  checkBackend();
+</script>
+</body>
+</html>
