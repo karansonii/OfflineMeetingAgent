@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meeting Report — Meeting Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0f1117;
+      --surface:    #181c27;
+      --surface2:   #1e2235;
+      --border:     #252a38;
+      --border2:    #2e3548;
+      --accent:     #6c63ff;
+      --accent2:    #a78bfa;
+      --accent-dim: rgba(108,99,255,0.15);
+      --green:      #22c55e;
+      --green-dim:  rgba(34,197,94,0.15);
+      --red:        #ef4444;
+      --orange:     #f97316;
+      --yellow:     #fbbf24;
+      --text:       #e8eaf0;
+      --text2:      #9ca3b8;
+      --muted:      #5a6080;
+    }
+
+    html, body { height: 100%; font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ── Top bar ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,17,23,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 28px;
+    }
+    .topbar-back {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
+      padding: 7px 14px; cursor: pointer; transition: all 0.15s;
+      color: var(--text2); font-size: 13px; font-weight: 500; text-decoration: none;
+    }
+    .topbar-back:hover { border-color: var(--border2); color: var(--text); }
+    .topbar-logo { font-size: 18px; }
+    .topbar-title { font-size: 15px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar-meta { font-size: 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+
+    /* Source badge — shows whether loaded from local storage or backend */
+    .source-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px;
+      letter-spacing: 0.04em; white-space: nowrap;
+    }
+    .source-badge.local { background: var(--green-dim); color: var(--green); }
+    .source-badge.server { background: var(--accent-dim); color: var(--accent2); }
+
+    .topbar-download {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
+      padding: 7px 14px; cursor: pointer; transition: all 0.15s;
+      color: var(--text2); font-size: 12.5px; font-weight: 500; white-space: nowrap;
+    }
+    .topbar-download:hover { border-color: var(--accent); color: var(--accent2); }
+    .topbar-download:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Tab bar ── */
+    .tabbar {
+      display: flex; align-items: center; gap: 2px;
+      padding: 14px 28px 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .tab {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: 10px 10px 0 0;
+      cursor: pointer; font-size: 13.5px; font-weight: 500;
+      color: var(--text2); border: 1px solid transparent;
+      border-bottom: none; transition: all 0.15s; user-select: none;
+      position: relative; bottom: -1px;
+    }
+    .tab:hover { color: var(--text); background: var(--surface2); }
+    .tab.active {
+      color: var(--text);
+      background: var(--surface);
+      border-color: var(--border);
+      border-bottom-color: var(--surface);
+    }
+    .tab-icon { font-size: 14px; }
+
+    /* ── Content ── */
+    .content { max-width: 900px; margin: 0 auto; padding: 28px 28px 60px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px 26px; margin-bottom: 18px;
+    }
+    .card-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--text2); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title span { font-size: 14px; }
+
+    /* ── Summary tab ── */
+    .overview-text { font-size: 14.5px; color: var(--text2); line-height: 1.75; }
+    .key-points { display: flex; flex-direction: column; gap: 10px; }
+    .key-point {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 16px; background: var(--surface2); border-radius: 10px;
+      border-left: 3px solid var(--accent);
+    }
+    .key-point-dot { color: var(--accent2); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .key-point-text { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+    .decisions { display: flex; flex-direction: column; gap: 8px; }
+    .decision {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 11px 15px; background: var(--surface2); border-radius: 10px;
+      border-left: 3px solid var(--green);
+    }
+    .decision-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+    .decision-text { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+
+    /* ── Tasks tab ── */
+    .tasks-grid { display: flex; flex-direction: column; gap: 14px; }
+    .task-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 18px 20px; transition: border-color 0.15s;
+    }
+    .task-card:hover { border-color: var(--border2); }
+    .task-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .task-title { font-size: 14.5px; font-weight: 600; color: var(--text); line-height: 1.4; }
+    .priority-badge {
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px;
+      letter-spacing: 0.04em; white-space: nowrap; flex-shrink: 0;
+    }
+    .priority-high { background: rgba(239,68,68,0.15); color: var(--red); }
+    .priority-medium { background: rgba(251,191,36,0.15); color: var(--yellow); }
+    .priority-low { background: var(--green-dim); color: var(--green); }
+    .task-desc { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 14px; }
+    .task-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+    .task-meta-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text2);
+      background: var(--surface2); padding: 5px 12px; border-radius: 7px;
+    }
+    .task-meta-icon { font-size: 13px; }
+    .task-meta-label { color: var(--muted); margin-right: 2px; }
+    .task-meta-value { color: var(--text); font-weight: 500; }
+    .no-tasks {
+      text-align: center; padding: 48px; color: var(--text2);
+      background: var(--surface); border: 1px dashed var(--border2); border-radius: 14px;
+    }
+    .no-tasks span { font-size: 36px; display: block; margin-bottom: 12px; }
+
+    /* ── Transcript tab ── */
+    .transcript-toolbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .transcript-search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 14px; flex: 1; max-width: 360px; transition: border-color 0.2s;
+    }
+    .transcript-search:focus-within { border-color: var(--accent); }
+    .transcript-search svg { color: var(--muted); flex-shrink: 0; }
+    .transcript-search input {
+      background: none; border: none; outline: none;
+      color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px; width: 100%;
+    }
+    .transcript-search input::placeholder { color: var(--muted); }
+    .transcript-count { font-size: 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+
+    .speaker-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .speaker-filter-btn {
+      padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); cursor: pointer;
+      font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 500; transition: all 0.15s;
+    }
+    .speaker-filter-btn:hover { border-color: var(--border2); color: var(--text); }
+    .speaker-filter-btn.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent2); }
+
+    .transcript-entries { display: flex; flex-direction: column; gap: 4px; }
+    .transcript-entry {
+      display: flex; gap: 16px; padding: 14px 18px; border-radius: 12px;
+      transition: background 0.15s; cursor: default;
+    }
+    .transcript-entry:hover { background: var(--surface); }
+    .transcript-entry.hidden { display: none; }
+    .entry-time {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--muted); white-space: nowrap; padding-top: 2px; min-width: 48px;
+    }
+    .entry-speaker-col { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 36px; }
+    .entry-avatar {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff;
+    }
+    .entry-body { flex: 1; }
+    .entry-speaker-name { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+    .entry-text { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+    .entry-text mark { background: rgba(108,99,255,0.3); color: var(--accent2); border-radius: 3px; padding: 0 2px; }
+
+    /* ── Loading / Error state ── */
+    .state-screen {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 60vh; gap: 14px; color: var(--text2);
+    }
+    .state-screen .icon { font-size: 48px; }
+    .state-screen h3 { font-size: 17px; font-weight: 600; color: var(--text); }
+    .state-screen p { font-size: 13.5px; text-align: center; max-width: 360px; line-height: 1.6; }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid var(--border2);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Download toast */
+    .dl-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--surface); border: 1px solid rgba(34,197,94,0.4);
+      border-radius: 12px; padding: 12px 20px; font-size: 13px;
+      display: flex; align-items: center; gap: 10px; z-index: 200;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: toast-in 0.3s ease;
+    }
+    @keyframes toast-in { from { opacity:0; transform: translateX(-50%) translateY(12px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+    /* No transcript notice */
+    .no-transcript-notice {
+      background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25);
+      border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;
+      font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 10px;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  </style>
+  <script src="../../config.js"></script>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a class="topbar-back" href="../home/index.html">
+    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <span class="topbar-logo">🎙️</span>
+  <span class="topbar-title" id="topbarTitle">Meeting Report</span>
+  <span class="topbar-meta" id="topbarMeta"></span>
+  <span class="source-badge" id="sourceBadge" style="display:none;"></span>
+  <button class="topbar-download" id="downloadBtn" onclick="downloadJSON()" disabled>
+    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Download JSON
+  </button>
+</div>
+
+<!-- TAB BAR -->
+<div class="tabbar">
+  <div class="tab active" id="tab-summary" onclick="switchTab('summary')">
+    <span class="tab-icon">📋</span> Summary
+  </div>
+  <div class="tab" id="tab-tasks" onclick="switchTab('tasks')">
+    <span class="tab-icon">✅</span> Tasks &amp; Actions
+    <span id="tasksBadge" style="display:none;background:var(--accent-dim);color:var(--accent2);font-size:11px;padding:1px 7px;border-radius:10px;font-weight:600;margin-left:4px;"></span>
+  </div>
+  <div class="tab" id="tab-transcript" onclick="switchTab('transcript')">
+    <span class="tab-icon">💬</span> Full Transcript
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- LOADING -->
+  <div id="loadingState" class="state-screen">
+    <div class="spinner"></div>
+    <h3>Loading meeting report…</h3>
+    <p>Checking local storage, then backend</p>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorState" class="state-screen" style="display:none;">
+    <div class="icon">⚠️</div>
+    <h3>Could not load report</h3>
+    <p id="errorMsg">The job ID may be invalid or the backend is offline.</p>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div class="tab-panel" id="panel-summary" style="display:none;">
+    <div class="card">
+      <div class="card-title"><span>📄</span> Meeting Overview</div>
+      <div class="overview-text" id="overviewText">Loading…</div>
+    </div>
+    <div class="card" id="keypointsCard">
+      <div class="card-title"><span>💡</span> Key Discussion Points</div>
+      <div class="key-points" id="keyPointsList"></div>
+    </div>
+    <div class="card" id="decisionsCard" style="display:none;">
+      <div class="card-title"><span>⚖️</span> Decisions Made</div>
+      <div class="decisions" id="decisionsList"></div>
+    </div>
+  </div>
+
+  <!-- TASKS TAB -->
+  <div class="tab-panel" id="panel-tasks" style="display:none;">
+    <div class="tasks-grid" id="tasksGrid"></div>
+  </div>
+
+  <!-- TRANSCRIPT TAB -->
+  <div class="tab-panel" id="panel-transcript" style="display:none;">
+    <div id="transcriptNotice" class="no-transcript-notice" style="display:none;">
+      ⚠️ Transcript was not saved locally (storage limit). Start the backend server to view the full transcript.
+    </div>
+    <div class="transcript-toolbar">
+      <div class="transcript-search">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="transcriptSearch" placeholder="Search transcript…" oninput="filterTranscript()" />
+      </div>
+      <span class="transcript-count" id="transcriptCount"></span>
+    </div>
+    <div class="speaker-filters" id="speakerFilters"></div>
+    <div class="transcript-entries" id="transcriptEntries"></div>
+  </div>
+
+</div>
+
+<script>
+  const BACKEND = APP_CONFIG.BACKEND_URL;
+  const STORAGE_KEY = 'meeting_agent_notes';
+
+  const AVATAR_COLORS = [
+    '#6c63ff','#22c55e','#f97316','#ef4444','#a78bfa',
+    '#06b6d4','#fbbf24','#ec4899','#84cc16','#8b5cf6',
+  ];
+
+  let jobData       = null;
+  let activeFilter  = 'all';
+  let searchQuery   = '';
+
+  // ── Load from localStorage ────────────────────────────────────────────────
+  function getJobFromStorage(jobId) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const jobs = JSON.parse(raw);
+      return jobs.find(j => j.id === jobId) || null;
+    } catch (_) { return null; }
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const jobId  = params.get('job_id');
+
+    if (!jobId) {
+      showError('No job_id in URL. Please go back and open a meeting result.');
+      return;
+    }
+
+    // ── STEP 1: Try localStorage first (works even when server is off) ──────
+    const localJob = getJobFromStorage(jobId);
+    if (localJob && localJob.status === 'complete' && localJob.result) {
+      jobData = localJob;
+      renderAll(jobData, 'local');
+      return;
+    }
+
+    // ── STEP 2: Fall back to backend ─────────────────────────────────────────
+    try {
+      const res = await fetch(`${BACKEND}/jobs/${jobId}`);
+      if (!res.ok) {
+        // If backend also fails and we have partial local data, show what we have
+        if (localJob) {
+          jobData = localJob;
+          renderAll(jobData, 'local');
+          return;
+        }
+        throw new Error(`Server returned ${res.status}`);
+      }
+      jobData = await res.json();
+
+      if (jobData.status !== 'complete') {
+        showError(`Job status is "${jobData.status}". Analysis may still be running.`);
+        return;
+      }
+
+      // Save to localStorage so future loads work offline
+      saveJobToStorage(jobData);
+      renderAll(jobData, 'server');
+    } catch (err) {
+      if (localJob) {
+        // Partial data (e.g. summary saved but no transcript) — still show it
+        jobData = localJob;
+        renderAll(jobData, 'local');
+      } else {
+        showError(err.message + ' — Make sure the backend server is running, or this report may not have been saved locally yet.');
+      }
+    }
+  });
+
+  // Save job to localStorage (same format as home page)
+  function saveJobToStorage(job) {
+    try {
+      const raw  = localStorage.getItem(STORAGE_KEY);
+      const jobs = raw ? JSON.parse(raw) : [];
+      const idx  = jobs.findIndex(j => j.id === job.id);
+      if (idx !== -1) jobs.splice(idx, 1);
+      jobs.unshift(job);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs.slice(0, 50)));
+    } catch (_) {}
+  }
+
+  function renderAll(job, source) {
+    document.getElementById('loadingState').style.display = 'none';
+
+    const summary    = job.result?.summary    || {};
+    const transcript = job.result?.transcript || [];
+    const durMin     = Math.round((job.result?.audio_duration_s || 0) / 60);
+    const pipeS      = Math.round(job.result?.total_pipeline_s || 0);
+
+    document.getElementById('topbarTitle').textContent = job.name || 'Meeting Report';
+    document.getElementById('topbarMeta').textContent  = `${durMin}min audio · ${pipeS}s pipeline`;
+
+    // Show source badge
+    const badge = document.getElementById('sourceBadge');
+    badge.style.display = 'inline';
+    if (source === 'local') {
+      badge.className = 'source-badge local';
+      badge.textContent = '💾 LOCAL';
+    } else {
+      badge.className = 'source-badge server';
+      badge.textContent = '🔗 SERVER';
+    }
+
+    document.getElementById('downloadBtn').disabled = false;
+
+    renderSummary(summary);
+    renderTasks(summary.tasks || []);
+    renderTranscript(transcript);
+
+    document.getElementById('panel-summary').style.display = 'block';
+    document.getElementById('panel-summary').classList.add('active');
+  }
+
+  function renderSummary(summary) {
+    document.getElementById('overviewText').textContent = summary.overview || 'No overview available.';
+
+    const kp = summary.key_points || [];
+    const kpList = document.getElementById('keyPointsList');
+    if (kp.length) {
+      kpList.innerHTML = kp.map(pt => `
+        <div class="key-point">
+          <span class="key-point-dot">◆</span>
+          <span class="key-point-text">${escHtml(pt)}</span>
+        </div>`).join('');
+    } else {
+      document.getElementById('keypointsCard').style.display = 'none';
+    }
+
+    const dec = summary.decisions || [];
+    const decList = document.getElementById('decisionsList');
+    if (dec.length) {
+      document.getElementById('decisionsCard').style.display = 'block';
+      decList.innerHTML = dec.map(d => `
+        <div class="decision">
+          <span class="decision-icon">✓</span>
+          <span class="decision-text">${escHtml(d)}</span>
+        </div>`).join('');
+    }
+  }
+
+  function renderTasks(tasks) {
+    const grid  = document.getElementById('tasksGrid');
+    const badge = document.getElementById('tasksBadge');
+
+    if (tasks.length) {
+      badge.textContent = tasks.length;
+      badge.style.display = 'inline';
+    }
+
+    if (!tasks.length) {
+      grid.innerHTML = `
+        <div class="no-tasks">
+          <span>📭</span>
+          <p style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;">No tasks extracted</p>
+          <p style="font-size:13px;">No action items were identified in this meeting.</p>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = tasks.map(task => {
+      return `
+        <div class="task-card">
+          <div class="task-header">
+            <div class="task-title">${escHtml(task.title || 'Untitled Task')}</div>
+          </div>
+          ${task.description ? `<div class="task-desc">${escHtml(task.description)}</div>` : ''}
+          <div class="task-meta">
+            ${task.assignee ? `<div class="task-meta-item"><span class="task-meta-icon">👤</span><span class="task-meta-label">Assigned to</span><span class="task-meta-value">${escHtml(task.assignee)}</span></div>` : ''}
+            ${task.assigner ? `<div class="task-meta-item"><span class="task-meta-icon">📌</span><span class="task-meta-label">By</span><span class="task-meta-value">${escHtml(task.assigner)}</span></div>` : ''}
+            ${task.deadline && task.deadline !== 'Not specified' ? `<div class="task-meta-item"><span class="task-meta-icon">📅</span><span class="task-meta-label">Due</span><span class="task-meta-value">${escHtml(task.deadline)}</span></div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  const speakerColorMap = {};
+  let colorIdx = 0;
+
+  function getSpeakerColor(name) {
+    if (!speakerColorMap[name]) {
+      speakerColorMap[name] = AVATAR_COLORS[colorIdx % AVATAR_COLORS.length];
+      colorIdx++;
+    }
+    return speakerColorMap[name];
+  }
+
+  function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  function fmtTimestamp(s) {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+
+  function renderTranscript(segments) {
+    const container = document.getElementById('transcriptEntries');
+    const notice    = document.getElementById('transcriptNotice');
+
+    if (!segments || !segments.length) {
+      // Check if this is because transcript was not stored (storage limit hit)
+      if (jobData && jobData.result && jobData.result.summary) {
+        // We have summary but no transcript — likely stripped to save space
+        notice.style.display = 'flex';
+      }
+      container.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text2);font-size:13.5px;">No transcript available.</div>`;
+      document.getElementById('transcriptCount').textContent = '0 segments';
+      return;
+    }
+
+    document.getElementById('transcriptCount').textContent =
+      `${segments.length} segment${segments.length !== 1 ? 's' : ''}`;
+
+    const speakers = [...new Set(segments.map(s => s.speaker_name || 'Unknown'))];
+    const filtersEl = document.getElementById('speakerFilters');
+    filtersEl.innerHTML = `<button class="speaker-filter-btn active" data-speaker="all" onclick="setSpeakerFilter('all', this)">All Speakers</button>` +
+      speakers.map(name => `<button class="speaker-filter-btn" data-speaker="${escAttr(name)}" onclick="setSpeakerFilter('${escAttr(name)}', this)">${escHtml(getInitials(name))} ${escHtml(name)}</button>`).join('');
+
+    container.innerHTML = segments.map((seg, i) => {
+      const name  = seg.speaker_name || 'Unknown';
+      const color = getSpeakerColor(name);
+      const time  = fmtTimestamp(seg.start || 0);
+      return `
+        <div class="transcript-entry" data-idx="${i}" data-speaker="${escAttr(name)}">
+          <span class="entry-time">[${time}]</span>
+          <div class="entry-speaker-col">
+            <div class="entry-avatar" style="background:${color};">${getInitials(name)}</div>
+          </div>
+          <div class="entry-body">
+            <div class="entry-speaker-name">${escHtml(name)}</div>
+            <div class="entry-text" data-raw="${escAttr(seg.text || '')}">${escHtml(seg.text || '')}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function setSpeakerFilter(speaker, btn) {
+    activeFilter = speaker;
+    document.querySelectorAll('.speaker-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  }
+
+  function filterTranscript() {
+    searchQuery = document.getElementById('transcriptSearch').value.trim().toLowerCase();
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const entries = document.querySelectorAll('.transcript-entry');
+    let visible = 0;
+    entries.forEach(entry => {
+      const speaker  = entry.getAttribute('data-speaker');
+      const textEl   = entry.querySelector('.entry-text');
+      const rawText  = textEl.getAttribute('data-raw') || '';
+
+      const speakerOk = activeFilter === 'all' || speaker === activeFilter;
+      const searchOk  = !searchQuery || rawText.toLowerCase().includes(searchQuery);
+
+      if (speakerOk && searchOk) {
+        entry.classList.remove('hidden');
+        if (searchQuery) {
+          textEl.innerHTML = escHtml(rawText).replace(
+            new RegExp(escRegex(escHtml(searchQuery)), 'gi'),
+            m => `<mark>${m}</mark>`
+          );
+        } else {
+          textEl.innerHTML = escHtml(rawText);
+        }
+        visible++;
+      } else {
+        entry.classList.add('hidden');
+      }
+    });
+    document.getElementById('transcriptCount').textContent =
+      `${visible} segment${visible !== 1 ? 's' : ''}`;
+  }
+
+  function switchTab(name) {
+    ['summary','tasks','transcript'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === name);
+      document.getElementById('panel-' + t).style.display = t === name ? 'block' : 'none';
+      if (t === name) document.getElementById('panel-' + t).classList.add('active');
+      else document.getElementById('panel-' + t).classList.remove('active');
+    });
+  }
+
+  async function downloadJSON() {
+    if (!jobData || !jobData.result) {
+      showDlToast('❌ No data to download', false);
+      return;
+    }
+
+    try {
+      const jsonStr  = JSON.stringify(jobData.result, null, 2);
+      const blob     = new Blob([jsonStr], { type: 'application/json' });
+      const url      = URL.createObjectURL(blob);
+
+      const safeName = (jobData.name || 'meeting_report')
+        .replace(/[^a-z0-9_\-]/gi, '_')
+        .replace(/_+/g, '_')
+        .toLowerCase();
+      const filename = `${safeName}.json`;
+
+      const a = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+      // ── If running in Tauri, offer to open the outputs folder ──
+      showDlToastWithViewOption('✅ Saved — ' + filename, jobData.result);
+
+    } catch (err) {
+      showDlToast('❌ Download failed: ' + err.message, false);
+    }
+  }
+
+  function showDlToast(msg, success) {
+    const existing = document.querySelector('.dl-toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'dl-toast';
+    t.style.borderColor = success ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  function showDlToastWithViewOption(msg, resultData) {
+    const existing = document.querySelector('.dl-toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'dl-toast';
+    t.style.cssText = 'border-color:rgba(34,197,94,0.4);display:flex;align-items:center;gap:12px;';
+    t.innerHTML = `
+      <span>${msg}</span>
+      <button id="viewJsonBtn"
+        style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);
+               color:#22c55e;border-radius:7px;padding:4px 12px;cursor:pointer;
+               font-family:Sora,sans-serif;font-size:12px;font-weight:600;white-space:nowrap;">
+        👁️ View JSON
+      </button>`;
+    document.body.appendChild(t);
+    document.getElementById('viewJsonBtn').addEventListener('click', () => {
+      t.remove();
+      showJsonModal(resultData);
+    });
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 8000);
+  }
+
+  function showJsonModal(resultData) {
+    const existing = document.getElementById('jsonViewModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'jsonViewModal';
+    modal.style.cssText = `
+      position:fixed;inset:0;z-index:500;
+      background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:24px;
+    `;
+    modal.innerHTML = `
+      <div style="
+        background:#181c27;border:1px solid #2e3548;border-radius:16px;
+        width:100%;max-width:860px;max-height:80vh;display:flex;flex-direction:column;
+        overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.7);
+      ">
+        <div style="
+          display:flex;align-items:center;justify-content:space-between;
+          padding:16px 20px;border-bottom:1px solid #252a38;flex-shrink:0;
+        ">
+          <span style="font-size:14px;font-weight:600;color:#e8eaf0;">📄 JSON Output</span>
+          <div style="display:flex;gap:8px;">
+            <button id="jsonCopyBtn" style="
+              background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.4);
+              color:#a78bfa;border-radius:7px;padding:5px 14px;cursor:pointer;
+              font-family:Sora,sans-serif;font-size:12px;font-weight:600;">
+              📋 Copy All
+            </button>
+            <button id="jsonCloseBtn" style="
+              background:#1e2235;border:1px solid #252a38;
+              color:#9ca3b8;border-radius:7px;padding:5px 14px;cursor:pointer;
+              font-family:Sora,sans-serif;font-size:12px;font-weight:600;">
+              ✕ Close
+            </button>
+          </div>
+        </div>
+        <pre id="jsonContent" style="
+          flex:1;overflow:auto;margin:0;padding:20px;
+          font-family:'JetBrains Mono',monospace;font-size:12px;
+          color:#9ca3b8;line-height:1.6;white-space:pre-wrap;word-break:break-word;
+        "></pre>
+      </div>`;
+
+    document.body.appendChild(modal);
+
+    const jsonStr = JSON.stringify(resultData, null, 2);
+    document.getElementById('jsonContent').textContent = jsonStr;
+
+    document.getElementById('jsonCloseBtn').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.getElementById('jsonCopyBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        const btn = document.getElementById('jsonCopyBtn');
+        if (btn) { btn.textContent = '✅ Copied!'; setTimeout(() => { if (btn) btn.textContent = '📋 Copy All'; }, 2000); }
+      });
+    });
+  }
+
+  
+
+  function showError(msg) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display  = 'flex';
+    document.getElementById('errorMsg').textContent = msg;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function escAttr(str) {
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function escRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+</script>
+</body>
+</html>
